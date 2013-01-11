@@ -11,6 +11,8 @@
 
 namespace HWI\Bundle\OAuthBundle\Security\Core\User;
 
+use HWI\Bundle\OAuthBundle\Security\Core\Exception\AccountNotConnectedException;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use FOS\UserBundle\Model\UserManagerInterface;
 use HWI\Bundle\OAuthBundle\OAuth\Response\UserResponseInterface;
 use HWI\Bundle\OAuthBundle\Security\Core\Exception\AccountNotLinkedException;
@@ -32,6 +34,11 @@ class FOSUBUserProvider implements OAuthAwareUserProviderInterface
     protected $userManager;
 
     /**
+     * @var ContainerInterface
+     */
+    protected $container;
+
+    /**
      * @var array
      */
     protected $properties;
@@ -42,17 +49,29 @@ class FOSUBUserProvider implements OAuthAwareUserProviderInterface
      * @param UserManagerInterface $userManager FOSUB user provider.
      * @param array                $properties  Property mapping.
      */
-    public function __construct(UserManagerInterface $userManager, array $properties)
+    public function __construct(UserManagerInterface $userManager, ContainerInterface $container, array $properties)
     {
         $this->userManager = $userManager;
         $this->properties  = $properties;
+        $this->container = $container;
     }
+
+    /*
+    public function setContainer(ContainerInterface $container)
+    {
+        $this->container = $container;
+    }
+    */
 
     /**
      * {@inheritdoc}
      */
     public function loadUserByOAuthUserResponse(UserResponseInterface $response)
     {
+        if ($this->container->get('security.context')->isGranted('IS_AUTHENTICATED_REMEMBERED')) {
+            throw new AccountNotConnectedException('User not connected');
+        }
+
         $username = $response->getUsername();
         $user = $this->userManager->findUserBy(array($this->getProperty($response) => $username));
 
