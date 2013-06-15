@@ -19,7 +19,7 @@ use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
  * @author Geoffrey Bachelet <geoffrey.bachelet@gmail.com>
  * @author Alexander <iam.asm89@gmail.com>
  */
-class OAuthToken extends AbstractToken
+class OAuthToken extends AbstractToken implements \Serializable
 {
     /**
      * @var string
@@ -42,6 +42,11 @@ class OAuthToken extends AbstractToken
     private $expiresIn;
 
     /**
+     * @var integer
+     */
+    private $createdAt;
+
+    /**
      * @var string
      */
     private $resourceOwnerName;
@@ -53,6 +58,8 @@ class OAuthToken extends AbstractToken
     public function __construct($accessToken, array $roles = array())
     {
         parent::__construct($roles);
+
+        $this->createdAt = time();
 
         $this->setRawToken($accessToken);
 
@@ -105,7 +112,7 @@ class OAuthToken extends AbstractToken
                 $this->expiresIn = $token['oauth_expires_in'];
             }
 
-            $this->rawToken = $token;
+            $this->rawToken    = $token;
         } else {
             $this->accessToken = $token;
             $this->rawToken    = array('access_token' => $token);
@@ -153,6 +160,20 @@ class OAuthToken extends AbstractToken
     }
 
     /**
+     * Returns if the `access_token` is expired.
+     *
+     * @return boolean True if the `access_token` is expired.
+     */
+    public function isExpired()
+    {
+        if (null === $this->expiresIn) {
+            return false;
+        }
+
+        return ($this->createdAt + ($this->expiresIn - time())) < 30;
+    }
+
+    /**
      * Get the resource owner name.
      *
      * @return string
@@ -182,6 +203,7 @@ class OAuthToken extends AbstractToken
             $this->rawToken,
             $this->refreshToken,
             $this->expiresIn,
+            $this->createdAt,
             $this->resourceOwnerName,
             parent::serialize()
         ));
@@ -197,6 +219,7 @@ class OAuthToken extends AbstractToken
             $this->rawToken,
             $this->refreshToken,
             $this->expiresIn,
+            $this->createdAt,
             $this->resourceOwnerName,
             $parent,
         ) = unserialize($serialized);

@@ -31,16 +31,17 @@ class OAuthTokenTest extends \PHPUnit_Framework_TestCase
         $expectedToken = array(
             'access_token'  => 'access_token',
             'refresh_token' => 'refresh_token',
-            'expires_in'    => '666',
+            'expires_in'    => time(),
         );
         $token = new OAuthToken($expectedToken, array('ROLE_TEST'));
         $token->setResourceOwnerName('github');
 
+        $this->assertEquals('github', $token->getResourceOwnerName());
         $this->assertEquals($expectedToken, $token->getRawToken());
         $this->assertEquals($expectedToken['access_token'], $token->getAccessToken());
         $this->assertEquals($expectedToken['refresh_token'], $token->getRefreshToken());
         $this->assertEquals($expectedToken['expires_in'], $token->getExpiresIn());
-        $this->assertEquals('github', $token->getResourceOwnerName());
+        $this->assertFalse($token->isExpired());
     }
 
     public function testIsAuthenticated()
@@ -64,5 +65,24 @@ class OAuthTokenTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('access_token', $token->getAccessToken());
         $this->assertEquals('github', $token->getResourceOwnerName());
+    }
+
+    public function testNotExpiredIfNoDataSet()
+    {
+        $this->assertFalse($this->token->isExpired());
+    }
+
+    public function testIsExpired()
+    {
+        $expectedToken = array(
+            'access_token'  => 'access_token',
+            'refresh_token' => 'refresh_token',
+            'expires_in'    => 10,
+        );
+        $token = new OAuthToken($expectedToken, array('ROLE_TEST'));
+        $token->setResourceOwnerName('github');
+
+        $this->assertEquals($expectedToken['expires_in'], $token->getExpiresIn());
+        $this->assertTrue($token->isExpired());
     }
 }
