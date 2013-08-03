@@ -56,27 +56,19 @@ class OAuthUtils
     }
 
     /**
-     * @param string $name
-     * @param string $redirectUrl     Optional
-     * @param array  $extraParameters Optional
+     * @param string      $name
+     * @param null|string $redirectUrl     Optional
+     * @param array       $extraParameters Optional
      *
      * @return string
      */
     public function getAuthorizationUrl($name, $redirectUrl = null, array $extraParameters = array())
     {
-        $hasUser = $this->container->get('security.context')->isGranted('IS_AUTHENTICATED_REMEMBERED');
-        $connect = $this->container->getParameter('hwi_oauth.connect');
-
-        $resourceOwner = $this->getResourceOwner($name);
-        $checkPath = $this->ownerMap->getResourceOwnerCheckPath($name);
-
-        if (!$connect || !$hasUser) {
-            $redirectUrl = $this->generateUri($checkPath);
-        } elseif (null === $redirectUrl) {
-            $redirectUrl = $this->generateUrl('hwi_oauth_connect_service', array('service' => $name), true);
+        if (null === $redirectUrl) {
+            $redirectUrl = $this->generateUri($this->ownerMap->getResourceOwnerCheckPath($name));
         }
 
-        return $resourceOwner->getAuthorizationUrl($redirectUrl, $extraParameters);
+        return $this->getResourceOwner($name)->getAuthorizationUrl($redirectUrl, $extraParameters);
     }
 
     /**
@@ -145,6 +137,10 @@ class OAuthUtils
                 break;
 
             case self::SIGNATURE_METHOD_RSA:
+                if (!function_exists('openssl_pkey_get_private')) {
+                    throw new \RuntimeException('RSA-SHA1 signature method requires the OpenSSL extension.');
+                }
+
                 $privateKey = openssl_pkey_get_private(file_get_contents($clientSecret), $tokenSecret);
                 $signature  = false;
 

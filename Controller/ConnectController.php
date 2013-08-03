@@ -19,7 +19,6 @@ use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\Exception\AccountStatusException;
@@ -175,7 +174,7 @@ class ConnectController extends ContainerAware
         if ($resourceOwner->handles($request)) {
             $accessToken = $resourceOwner->getAccessToken(
                 $request,
-                $this->generate('hwi_oauth_connect_service', array('service' => $service), true)
+                $this->container->get('hwi_oauth.security.oauth_utils')->getAuthorizationUrl($service)
             );
 
             // save in session
@@ -198,11 +197,7 @@ class ConnectController extends ContainerAware
             ->getForm();
 
         if ('POST' === $request->getMethod()) {
-            if ('2' == Kernel::MAJOR_VERSION && '2' <= Kernel::MINOR_VERSION) {
-                $form->bind($request);
-            } else {
-                $form->bindRequest($request);
-            }
+            $form->bind($request);
 
             if ($form->isValid()) {
                 show_confirmation_page:
