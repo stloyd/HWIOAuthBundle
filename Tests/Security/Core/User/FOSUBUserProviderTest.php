@@ -11,6 +11,8 @@
 
 namespace HWI\Bundle\OAuthBundle\Tests\Security\Core\User;
 
+use HWI\Bundle\OAuthBundle\OAuth\ResourceOwnerInterface;
+use HWI\Bundle\OAuthBundle\OAuth\Response\UserResponseInterface;
 use HWI\Bundle\OAuthBundle\Security\Core\User\FOSUBUserProvider;
 use HWI\Bundle\OAuthBundle\Tests\Fixtures\FOSUser;
 
@@ -42,6 +44,19 @@ class FOSUBUserProviderTest extends \PHPUnit_Framework_TestCase
         $userResponseMock = $this->createUserResponseMock('asm89', 'github');
 
         $provider = $this->createFOSUBUserProvider();
+
+        $provider->loadUserByOAuthUserResponse($userResponseMock);
+    }
+
+    /**
+     * @expectedException \HWI\Bundle\OAuthBundle\Security\Core\Exception\AccountNotConnectedException
+     * @expectedExceptionMessage User not connected.
+     */
+    public function testLoadUserByOAuthUserResponseThrowsExceptionWhenUserIsLoggedIn()
+    {
+        $userResponseMock = $this->createUserResponseMock();
+
+        $provider = $this->createFOSUBUserProvider(null, null, true);
 
         $provider->loadUserByOAuthUserResponse($userResponseMock);
     }
@@ -84,7 +99,7 @@ class FOSUBUserProviderTest extends \PHPUnit_Framework_TestCase
         $provider->connect($user, $userResponseMock);
     }
 
-    protected function createFOSUBUserProvider($user = null, $updateUser = null)
+    protected function createFOSUBUserProvider($user = null, $updateUser = null, $userLoggedIn = false)
     {
         $properties = array('github' => 'githubId', 'google' => 'googleId');
 
@@ -104,9 +119,22 @@ class FOSUBUserProviderTest extends \PHPUnit_Framework_TestCase
                 ->with($updateUser);
         }
 
-        return new FOSUBUserProvider($userManagerMock, $properties);
+        $securityContextMock = $this->getMockBuilder('Symfony\Component\Security\Core\SecurityContextInterface')
+            ->getMock();
+
+        $securityContextMock->expects($this->any())
+            ->method('isGranted')
+            ->with('IS_AUTHENTICATED_REMEMBERED')
+            ->will($this->returnValue($userLoggedIn));
+
+        return new FOSUBUserProvider($userManagerMock, $securityContextMock, $properties);
     }
 
+    /**
+     * @param null|string $resourceOwnerName
+     *
+     * @return ResourceOwnerInterface
+     */
     protected function createResourceOwnerMock($resourceOwnerName = null)
     {
         $resourceOwnerMock = $this->getMockBuilder('HWI\Bundle\OAuthBundle\OAuth\ResourceOwnerInterface')
@@ -122,6 +150,12 @@ class FOSUBUserProviderTest extends \PHPUnit_Framework_TestCase
         return $resourceOwnerMock;
     }
 
+    /**
+     * @param null|string $username
+     * @param null|string $resourceOwnerName
+     *
+     * @return UserResponseInterface
+     */
     protected function createUserResponseMock($username = null, $resourceOwnerName = null)
     {
         $responseMock = $this->getMockBuilder('HWI\Bundle\OAuthBundle\OAuth\Response\UserResponseInterface')

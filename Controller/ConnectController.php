@@ -13,6 +13,7 @@ namespace HWI\Bundle\OAuthBundle\Controller;
 
 use HWI\Bundle\OAuthBundle\OAuth\ResourceOwnerInterface;
 use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthToken;
+use HWI\Bundle\OAuthBundle\Security\Core\Exception\AccountNotConnectedException;
 use HWI\Bundle\OAuthBundle\Security\Core\Exception\AccountNotLinkedException;
 use Symfony\Component\DependencyInjection\ContainerAware;
 use Symfony\Component\Form\Form;
@@ -45,11 +46,11 @@ class ConnectController extends ContainerAware
     public function connectAction(Request $request)
     {
         $connect = $this->container->getParameter('hwi_oauth.connect');
-        $hasUser = $this->container->get('security.context')->isGranted('IS_AUTHENTICATED_REMEMBERED');
-
-        $error = $this->getErrorForRequest($request);
+        $error   = $this->getErrorForRequest($request);
 
         if ($connect) {
+            $hasUser = $this->container->get('security.context')->isGranted('IS_AUTHENTICATED_REMEMBERED');
+
             // if connecting is enabled and there is no user, redirect to the registration form
             if (!$hasUser && $error instanceof AccountNotLinkedException) {
                 $key = time();
@@ -60,7 +61,7 @@ class ConnectController extends ContainerAware
             }
 
             if ($hasUser && $error instanceof AccountNotConnectedException) {
-                //redirect to connect confirm
+                return new RedirectResponse($this->generate('hwi_oauth_connect_service', array('service' => $error->getResourceOwnerName())));
             }
         }
 

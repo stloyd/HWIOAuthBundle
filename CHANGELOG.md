@@ -2,6 +2,9 @@ Changelog
 =========
 
 ## 0.3.0-alpha3 (2013-xx-xx)
+* [BC break] `FOSUBUserProvider::__constructor()` now uses Symfony Security Context
+  as a second parameter
+* Added `AccountNotConnectedException` exception class
 * Added ability to merge response parts into single path
 * Added Bitly resource owner
 * Added Box resource owner

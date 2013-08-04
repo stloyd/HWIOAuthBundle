@@ -11,28 +11,67 @@
 
 namespace HWI\Bundle\OAuthBundle\Security\Core\Exception;
 
+use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthToken;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
-class AccountNotConnectedException extends AuthenticationException
-    implements OAuthAwareExceptionInterface
+class AccountNotConnectedException extends AuthenticationException implements OAuthAwareExceptionInterface
 {
-    private $accessToken;
-    private $resourceOwnerName;
-
     /**
-     * {@inheritdoc}
+     * @var string
      */
-    public function setAccessToken($accessToken)
-    {
-        $this->accessToken = $accessToken;
-    }
+    protected $resourceOwnerName;
+    /**
+     * @var OAuthToken
+     */
+    protected $token;
 
     /**
      * {@inheritdoc}
      */
     public function getAccessToken()
     {
-        return $this->accessToken;
+        return $this->token->getAccessToken();
+    }
+
+    /**
+     * @return array
+     */
+    public function getRawToken()
+    {
+        return $this->token->getRawToken();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getRefreshToken()
+    {
+        return $this->token->getRefreshToken();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getExpiresIn()
+    {
+        return $this->token->getExpiresIn();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getTokenSecret()
+    {
+        return $this->token->getTokenSecret();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setToken(TokenInterface $token)
+    {
+        $this->token = $token;
     }
 
     /**
@@ -51,19 +90,25 @@ class AccountNotConnectedException extends AuthenticationException
         $this->resourceOwnerName = $resourceOwnerName;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function serialize()
     {
         return serialize(array(
-            $this->accessToken,
+            $this->token,
             $this->resourceOwnerName,
             parent::serialize(),
         ));
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function unserialize($str)
     {
         list(
-            $this->accessToken,
+            $this->token,
             $this->resourceOwnerName,
             $parentData
         ) = unserialize($str);

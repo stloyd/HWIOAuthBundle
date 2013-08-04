@@ -11,12 +11,12 @@
 
 namespace HWI\Bundle\OAuthBundle\Security\Core\User;
 
-use HWI\Bundle\OAuthBundle\Security\Core\Exception\AccountNotConnectedException;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use FOS\UserBundle\Model\UserManagerInterface;
 use HWI\Bundle\OAuthBundle\OAuth\Response\UserResponseInterface;
+use HWI\Bundle\OAuthBundle\Security\Core\Exception\AccountNotConnectedException;
 use HWI\Bundle\OAuthBundle\Security\Core\Exception\AccountNotLinkedException;
-use HWI\Bundle\OAuthBundle\Security\Core\User\OAuthAwareUserProviderInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Security\Core\SecurityContextInterface;
 
 /**
  * Class providing a bridge to use the FOSUB user provider with HWIOAuth.
@@ -34,42 +34,36 @@ class FOSUBUserProvider implements OAuthAwareUserProviderInterface
     protected $userManager;
 
     /**
-     * @var ContainerInterface
-     */
-    protected $container;
-
-    /**
      * @var array
      */
     protected $properties;
 
     /**
+     * @var SecurityContextInterface
+     */
+    protected $securityContext;
+
+    /**
      * Constructor.
      *
-     * @param UserManagerInterface $userManager FOSUB user provider.
-     * @param array                $properties  Property mapping.
+     * @param UserManagerInterface     $userManager     FOSUB user provider.
+     * @param SecurityContextInterface $securityContext Symfony security context.
+     * @param array                    $properties      Property mapping.
      */
-    public function __construct(UserManagerInterface $userManager, ContainerInterface $container, array $properties)
+    public function __construct(UserManagerInterface $userManager, SecurityContextInterface $securityContext, array $properties)
     {
-        $this->userManager = $userManager;
-        $this->properties  = $properties;
-        $this->container = $container;
+        $this->userManager     = $userManager;
+        $this->properties      = $properties;
+        $this->securityContext = $securityContext;
     }
-
-    /*
-    public function setContainer(ContainerInterface $container)
-    {
-        $this->container = $container;
-    }
-    */
 
     /**
      * {@inheritdoc}
      */
     public function loadUserByOAuthUserResponse(UserResponseInterface $response)
     {
-        if ($this->container->get('security.context')->isGranted('IS_AUTHENTICATED_REMEMBERED')) {
-            throw new AccountNotConnectedException('User not connected');
+        if ($this->securityContext->isGranted('IS_AUTHENTICATED_REMEMBERED')) {
+            throw new AccountNotConnectedException('User not connected.');
         }
 
         $username = $response->getUsername();
