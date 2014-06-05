@@ -20,7 +20,7 @@ use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
  * @author Alexander <iam.asm89@gmail.com>
  * @author Joseph Bielawski <stloyd@gmail.com>
  */
-class OAuthToken extends AbstractToken
+class OAuthToken extends AbstractToken implements OAuthTokenInterface
 {
     /**
      * @var string

@@ -16,7 +16,7 @@ use FOS\UserBundle\Mailer\MailerInterface;
 use FOS\UserBundle\Model\UserManagerInterface;
 use FOS\UserBundle\Util\TokenGenerator;
 use HWI\Bundle\OAuthBundle\OAuth\Response\UserResponseInterface;
-use Symfony\Component\Form\Form;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -72,7 +72,7 @@ class FOSUBRegistrationFormHandler implements RegistrationFormHandlerInterface
     /**
      * {@inheritDoc}
      */
-    public function process(Request $request, Form $form, UserResponseInterface $userInformation)
+    public function process(Request $request, FormInterface $form, UserResponseInterface $userInformation)
     {
         if (null !== $this->registrationFormHandler) {
             $formHandler = $this->reconstructFormHandler($request, $form);
@@ -134,12 +134,12 @@ class FOSUBRegistrationFormHandler implements RegistrationFormHandlerInterface
     /**
      * Reconstructs the form handler in order to inject the right form.
      *
-     * @param Request $request Active request
-     * @param Form    $form    Form to process
+     * @param Request       $request Active request
+     * @param FormInterface $form    Form to process
      *
      * @return mixed
      */
-    protected function reconstructFormHandler(Request $request, Form $form)
+    protected function reconstructFormHandler(Request $request, FormInterface $form)
     {
         $handlerClass = get_class($this->registrationFormHandler);
 

@@ -16,3 +16,9 @@ before_script:
     - composer require --no-update symfony/symfony=${SYMFONY_VERSION}
     - composer require --no-update friendsofsymfony/user-bundle=${FOSUSERBUNDLE_VERSION}
     - composer install --prefer-source
+
+    - export PATH=./vendor/bin:$PATH
+
+script:
+    - phpspec run -f pretty
+    - phpunit

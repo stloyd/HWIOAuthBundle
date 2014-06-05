@@ -12,7 +12,7 @@
 namespace HWI\Bundle\OAuthBundle\OAuth\Response;
 
 use HWI\Bundle\OAuthBundle\OAuth\ResponseInterface;
-use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthToken;
+use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthTokenInterface;
 
 /**
  * UserResponseInterface
@@ -92,7 +92,7 @@ interface UserResponseInterface extends ResponseInterface
     /**
      * Set the raw token data from the request.
      *
-     * @param OAuthToken $token
+     * @param OAuthTokenInterface $token
      */
-    public function setOAuthToken(OAuthToken $token);
+    public function setOAuthToken(OAuthTokenInterface $token);
 }

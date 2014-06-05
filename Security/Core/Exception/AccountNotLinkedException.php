@@ -11,7 +11,7 @@
 
 namespace HWI\Bundle\OAuthBundle\Security\Core\Exception;
 
-use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthToken;
+use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthTokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 
@@ -22,7 +22,7 @@ class AccountNotLinkedException extends UsernameNotFoundException implements OAu
      */
     protected $resourceOwnerName;
     /**
-     * @var OAuthToken
+     * @var OAuthTokenInterface
      */
     protected $token;
 

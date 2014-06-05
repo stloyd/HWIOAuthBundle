@@ -11,7 +11,7 @@
 
 namespace HWI\Bundle\OAuthBundle\Security\Core\Authentication\Provider;
 
-use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthToken;
+use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthTokenInterface;
 use HWI\Bundle\OAuthBundle\Security\Core\Exception\OAuthAwareExceptionInterface;
 use HWI\Bundle\OAuthBundle\Security\Core\User\OAuthAwareUserProviderInterface;
 use HWI\Bundle\OAuthBundle\Security\Http\ResourceOwnerMap;
@@ -59,7 +59,7 @@ class OAuthProvider implements AuthenticationProviderInterface
      */
     public function supports(TokenInterface $token)
     {
-        return $token instanceof OAuthToken;
+        return $token instanceof OAuthTokenInterface;
     }
 
     /**
@@ -67,7 +67,7 @@ class OAuthProvider implements AuthenticationProviderInterface
      */
     public function authenticate(TokenInterface $token)
     {
-        /* @var OAuthToken $token */
+        /* @var OAuthTokenInterface $token */
         $resourceOwner = $this->resourceOwnerMap->getResourceOwnerByName($token->getResourceOwnerName());
 
         $userResponse = $resourceOwner->getUserInformation($token->getRawToken());
@@ -81,13 +81,8 @@ class OAuthProvider implements AuthenticationProviderInterface
             throw $e;
         }
 
-        $token = new OAuthToken($token->getRawToken(), $user->getRoles());
-        $token->setResourceOwnerName($resourceOwner->getName());
-        $token->setUser($user);
-        $token->setAuthenticated(true);
-
         $this->userChecker->checkPostAuth($user);
 
-        return $token;
+        return $this->resourceOwnerMap->createOAuthToken($resourceOwner, $token, $user);
     }
 }

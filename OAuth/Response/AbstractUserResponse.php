@@ -12,7 +12,7 @@
 namespace HWI\Bundle\OAuthBundle\OAuth\Response;
 
 use HWI\Bundle\OAuthBundle\OAuth\ResourceOwnerInterface;
-use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthToken;
+use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthTokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 /**
@@ -33,7 +33,7 @@ abstract class AbstractUserResponse implements UserResponseInterface
     protected $resourceOwner;
 
     /**
-     * @var OAuthToken
+     * @var OAuthTokenInterface
      */
     protected $oAuthToken;
 
@@ -88,7 +88,7 @@ abstract class AbstractUserResponse implements UserResponseInterface
     /**
      * {@inheritdoc}
      */
-    public function setOAuthToken(OAuthToken $token)
+    public function setOAuthToken(OAuthTokenInterface $token)
     {
         $this->oAuthToken = $token;
     }

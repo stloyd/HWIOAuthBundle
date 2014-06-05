@@ -12,8 +12,12 @@
 namespace HWI\Bundle\OAuthBundle\Security\Http;
 
 use HWI\Bundle\OAuthBundle\OAuth\ResourceOwnerInterface;
+use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthToken;
+use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthTokenInterface;
 use Symfony\Component\DependencyInjection\ContainerAware;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\HttpUtils;
 
 /**
@@ -116,5 +120,22 @@ class ResourceOwnerMap extends ContainerAware
     public function getResourceOwners()
     {
         return $this->resourceOwners;
+    }
+
+    /**
+     * @param ResourceOwnerInterface $resourceOwner
+     * @param OAuthTokenInterface    $token
+     * @param UserInterface          $user
+     *
+     * @return OAuthTokenInterface
+     */
+    public function createOAuthToken(ResourceOwnerInterface $resourceOwner, OAuthTokenInterface $token, UserInterface $user)
+    {
+        $token = new OAuthToken($token->getRawToken(), $user->getRoles());
+        $token->setResourceOwnerName($resourceOwner->getName());
+        $token->setUser($user);
+        $token->setAuthenticated(true);
+
+        return $token;
     }
 }

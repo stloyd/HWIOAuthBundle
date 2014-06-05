@@ -23,6 +23,8 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
  */
 class OAuthUserProvider implements UserProviderInterface, OAuthAwareUserProviderInterface
 {
+    private $class = 'HWI\\Bundle\\OAuthBundle\\Security\\Core\\User\\OAuthUser';
+
     /**
      * {@inheritDoc}
      */
@@ -56,6 +58,6 @@ class OAuthUserProvider implements UserProviderInterface, OAuthAwareUserProvider
      */
     public function supportsClass($class)
     {
-        return $class === 'HWI\\Bundle\\OAuthBundle\\Security\\Core\\User\\OAuthUser';
+        return $class === $this->class || is_subclass_of($class, $this->class);
     }
 }
