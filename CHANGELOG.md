@@ -1,22 +1,10 @@
 Changelog
 =========
-## 0.5.0 (xxxx-xx-xx)
-* Fixed: Better `FOSUserBundle` integration,
-* Fixed: Serialization issue in `WechatResourceOwner`,
-* Fixed: Incorrect refresh token in `WechatResourceOwner`,
-* Fixed: Broken `TrelloResourceOwner`,
-* Fixed: Removed dead code in `OAuthProvider`,
-* Fixed: Update Facebook API to v2.7,
-* Added: Symfony 3 support,
-* Added: Redirect to `target_path` after successful registration/connection,
-* Added: Asana resource owner,
-* Added: Bitbucket resource owner,
-* Added: Clever resource owner,
-* Added: Itembase resource owner,
-* Added: Jawbon resource owner,
-* Added: Office365 resource owner,
-* Added: Wunderlist resource owner,
-* Added: Hungarian translation
+## 0.4.3 (2016-09-11)
+* Fixed: Request parameters are not copied into new Request on forward
+* Fixed: Fixed scope deprecating message
+* Fixed: Resolved deprecated message in ConnectController
+* Fixed: Removed usage of deprecated code in tests
 
 ## 0.4.2 (2016-07-27)
 * Fixed: Change Discogs URL from http to https
