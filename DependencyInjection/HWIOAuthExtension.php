@@ -18,6 +18,10 @@ use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Exception\BadMethodCallException;
+use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
+use Symfony\Component\DependencyInjection\Exception\OutOfBoundsException;
+use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
@@ -35,16 +39,15 @@ final class HWIOAuthExtension extends Extension
      * @throws \Exception
      * @throws \RuntimeException
      * @throws InvalidConfigurationException
-     * @throws \Symfony\Component\DependencyInjection\Exception\BadMethodCallException
-     * @throws \Symfony\Component\DependencyInjection\Exception\InvalidArgumentException
-     * @throws \Symfony\Component\DependencyInjection\Exception\OutOfBoundsException
-     * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
+     * @throws BadMethodCallException
+     * @throws InvalidArgumentException
+     * @throws OutOfBoundsException
+     * @throws ServiceNotFoundException
      */
     public function load(array $configs, ContainerBuilder $container)
     {
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config/'));
         $loader->load('controller.xml');
-        $loader->load('http_client.xml');
         $loader->load('oauth.xml');
         $loader->load('templating.xml');
         $loader->load('twig.xml');
@@ -52,8 +55,6 @@ final class HWIOAuthExtension extends Extension
 
         $processor = new Processor();
         $config = $processor->processConfiguration(new Configuration(), $configs);
-
-        $this->createHttplugClient($container, $config);
 
         // set current firewall
         if (empty($config['firewall_names'])) {
@@ -105,10 +106,10 @@ final class HWIOAuthExtension extends Extension
      * @param array            $options   Additional options of the service
      *
      * @throws InvalidConfigurationException
-     * @throws \Symfony\Component\DependencyInjection\Exception\BadMethodCallException
-     * @throws \Symfony\Component\DependencyInjection\Exception\InvalidArgumentException
+     * @throws BadMethodCallException
+     * @throws InvalidArgumentException
      */
-    public function createResourceOwnerService(ContainerBuilder $container, $name, array $options)
+    public function createResourceOwnerService(ContainerBuilder $container, string $name, array $options): void
     {
         // alias services
         if (isset($options['service'])) {
@@ -135,8 +136,8 @@ final class HWIOAuthExtension extends Extension
             $definition->setClass("%hwi_oauth.resource_owner.$type.class%");
         }
 
-        $definition->replaceArgument(2, $options);
-        $definition->replaceArgument(3, $name);
+        $definition->replaceArgument(1, $options);
+        $definition->replaceArgument(2, $name);
         $definition->setPublic(true);
 
         $container->setDefinition('hwi_oauth.resource_owner.'.$name, $definition);
@@ -151,36 +152,15 @@ final class HWIOAuthExtension extends Extension
     }
 
     /**
-     * @param ContainerBuilder $container
-     * @param array            $config
-     */
-    protected function createHttplugClient(ContainerBuilder $container, array $config)
-    {
-        $httpClientId = $config['http']['client'];
-        $httpMessageFactoryId = $config['http']['message_factory'];
-        $bundles = $container->getParameter('kernel.bundles');
-
-        if ('httplug.client.default' === $httpClientId && !isset($bundles['HttplugBundle'])) {
-            throw new InvalidConfigurationException('You must setup php-http/httplug-bundle to use the default http client service.');
-        }
-        if ('httplug.message_factory.default' === $httpMessageFactoryId && !isset($bundles['HttplugBundle'])) {
-            throw new InvalidConfigurationException('You must setup php-http/httplug-bundle to use the default http message factory service.');
-        }
-
-        $container->setAlias('hwi_oauth.http.client', new Alias($config['http']['client'], true));
-        $container->setAlias('hwi_oauth.http.message_factory', new Alias($config['http']['message_factory'], true));
-    }
-
-    /**
      * Check of the connect controllers etc should be enabled.
      *
      * @param ContainerBuilder $container
      * @param array            $config
      *
-     * @throws \Symfony\Component\DependencyInjection\Exception\BadMethodCallException
-     * @throws \Symfony\Component\DependencyInjection\Exception\InvalidArgumentException
+     * @throws BadMethodCallException
+     * @throws InvalidArgumentException
      */
-    private function createConnectIntegration(ContainerBuilder $container, array $config)
+    private function createConnectIntegration(ContainerBuilder $container, array $config): void
     {
         if (isset($config['connect'])) {
             $container->setParameter('hwi_oauth.connect', true);

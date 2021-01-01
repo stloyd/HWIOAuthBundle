@@ -13,11 +13,10 @@ declare(strict_types=1);
 
 namespace HWI\Bundle\OAuthBundle\Tests\Functional;
 
-use Prophecy\Argument;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class IntegrationTest extends WebTestCase
 {
@@ -48,7 +47,7 @@ class IntegrationTest extends WebTestCase
         $this->assertSame(200, $response->getStatusCode(), 'No landing, got redirect to '.$response->headers->get('Location'));
 
         $client->disableReboot();
-        $client->getContainer()->set(ClientInterface::class, $this->prophesize(ClientInterface::class)->reveal());
+        $client->getContainer()->set(HttpClientInterface::class, new MockHttpClient());
 
         $client->click($crawler->selectLink('Login')->link());
 
@@ -77,18 +76,15 @@ class IntegrationTest extends WebTestCase
                 'prompt' => 'none',
             ]);
 
-        $response = $this->prophesize(ResponseInterface::class);
-        $response->getBody()
-            ->willReturn(json_encode(['access_token' => 'valid-access-token']));
-
-        $httpClient = $this->prophesize(ClientInterface::class);
-        $httpClient->sendRequest(Argument::type(RequestInterface::class))
-            ->shouldBeCalled()
-            ->willReturn($response->reveal());
+        $httpClient = new MockHttpClient(
+            [
+                new MockResponse(json_encode(['access_token' => 'valid-access-token'])),
+            ]
+        );
 
         $client = static::createClient();
         $client->disableReboot();
-        $client->getContainer()->set(ClientInterface::class, $httpClient->reveal());
+        $client->getContainer()->set(HttpClientInterface::class, $httpClient);
 
         $client->request('GET', $redirectLoginFromService);
 

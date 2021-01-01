@@ -11,10 +11,13 @@
 
 namespace HWI\Bundle\OAuthBundle\OAuth\ResourceOwner;
 
+use HWI\Bundle\OAuthBundle\OAuth\Exception\HttpTransportException;
 use HWI\Bundle\OAuthBundle\OAuth\Response\UserResponseInterface;
 use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthToken;
-use Psr\Http\Message\ResponseInterface;
+use Symfony\Component\HttpClient\Exception\JsonException;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * DropboxResourceOwner.
@@ -46,8 +49,7 @@ class DropboxResourceOwner extends GenericOAuth2ResourceOwner
     ) {
         if ($this->options['use_bearer_authorization']) {
             $content = $this->httpRequest(
-                $this->normalizeUrl($this->options['infos_url'],
-                    $extraParameters),
+                $this->normalizeUrl($this->options['infos_url'], $extraParameters),
                 'null',
                 [
                     'Authorization' => 'Bearer'.' '.$accessToken['access_token'],
@@ -58,18 +60,23 @@ class DropboxResourceOwner extends GenericOAuth2ResourceOwner
             $content = $this->doGetUserInformationRequest(
                 $this->normalizeUrl(
                     $this->options['infos_url'],
-                    array_merge([$this->options['attr_name'] => $accessToken['access_token']],
-                        $extraParameters)
+                    array_merge([$this->options['attr_name'] => $accessToken['access_token']], $extraParameters)
                 )
             );
         }
 
-        $response = $this->getUserResponse();
-        $response->setData($content instanceof ResponseInterface ? (string) $content->getBody() : $content);
-        $response->setResourceOwner($this);
-        $response->setOAuthToken(new OAuthToken($accessToken));
+        try {
+            $response = $this->getUserResponse();
+            $response->setData($content instanceof ResponseInterface ? $content->toArray(false) : $content);
+            $response->setResourceOwner($this);
+            $response->setOAuthToken(new OAuthToken($accessToken));
 
-        return $response;
+            return $response;
+        } catch (JsonException $e) {
+            throw new HttpTransportException('Error while sending HTTP request', $this->getName(), $e->getCode(), $e);
+        } catch (TransportExceptionInterface $e) {
+            throw new HttpTransportException('Error while sending HTTP request', $this->getName(), $e->getCode(), $e);
+        }
     }
 
     /**

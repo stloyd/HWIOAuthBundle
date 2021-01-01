@@ -15,10 +15,10 @@ use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthToken;
 use HWI\Bundle\OAuthBundle\Security\Helper\NonceGenerator;
 use HWI\Bundle\OAuthBundle\Security\OAuthErrorHandler;
 use HWI\Bundle\OAuthBundle\Security\OAuthUtils;
-use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\HttpFoundation\Request as HttpRequest;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * GenericOAuth1ResourceOwner.
@@ -54,7 +54,7 @@ class GenericOAuth1ResourceOwner extends AbstractResourceOwner
         $content = $this->doGetUserInformationRequest($url, $parameters);
 
         $response = $this->getUserResponse();
-        $response->setData($content instanceof ResponseInterface ? (string) $content->getBody() : $content);
+        $response->setData($content instanceof ResponseInterface ? $content->getContent() : $content);
         $response->setResourceOwner($this);
         $response->setOAuthToken(new OAuthToken($accessToken));
 

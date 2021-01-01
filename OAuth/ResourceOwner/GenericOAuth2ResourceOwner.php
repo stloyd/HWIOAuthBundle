@@ -11,14 +11,17 @@
 
 namespace HWI\Bundle\OAuthBundle\OAuth\ResourceOwner;
 
+use HWI\Bundle\OAuthBundle\OAuth\Exception\HttpTransportException;
 use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthToken;
 use HWI\Bundle\OAuthBundle\Security\Helper\NonceGenerator;
 use HWI\Bundle\OAuthBundle\Security\OAuthErrorHandler;
-use Psr\Http\Message\ResponseInterface;
+use Symfony\Component\HttpClient\Exception\JsonException;
 use Symfony\Component\HttpFoundation\Request as HttpRequest;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * @author Geoffrey Bachelet <geoffrey.bachelet@gmail.com>
@@ -46,12 +49,18 @@ class GenericOAuth2ResourceOwner extends AbstractResourceOwner
             );
         }
 
-        $response = $this->getUserResponse();
-        $response->setData($content instanceof ResponseInterface ? (string) $content->getBody() : $content);
-        $response->setResourceOwner($this);
-        $response->setOAuthToken(new OAuthToken($accessToken));
+        try {
+            $response = $this->getUserResponse();
+            $response->setData($content instanceof ResponseInterface ? $content->toArray(false) : $content);
+            $response->setResourceOwner($this);
+            $response->setOAuthToken(new OAuthToken($accessToken));
 
-        return $response;
+            return $response;
+        } catch (JsonException $e) {
+            throw new HttpTransportException('Error while sending HTTP request', $this->getName(), $e->getCode(), $e);
+        } catch (TransportExceptionInterface $e) {
+            throw new HttpTransportException('Error while sending HTTP request', $this->getName(), $e->getCode(), $e);
+        }
     }
 
     /**

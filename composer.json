@@ -100,13 +100,7 @@
         "symfony/form":                   "^4.4|^5.1",
         "symfony/yaml":                   "^4.4|^5.1",
         "symfony/templating":             "^4.4|^5.1",
-
-        "psr/http-message":               "^1.0",
-        "php-http/client-implementation": "^1.0",
-        "php-http/httplug":               "^2.0",
-        "php-http/client-common":         "^2.0",
-        "php-http/message-factory":       "^1.0",
-        "php-http/discovery":             "^1.0"
+        "symfony/http-client":            "^5.1"
     },
 
     "require-dev": {
@@ -120,8 +114,6 @@
         "symfony/phpunit-bridge":       "^5.1",
         "symfony/translation":          "^4.4|^5.1",
         "friendsofsymfony/user-bundle": "^2.1",
-        "php-http/httplug-bundle":      "^1.7",
-        "php-http/guzzle6-adapter":     "^2.0",
         "phpunit/phpunit":              "^8.5",
         "friendsofphp/php-cs-fixer":    "^3.0",
         "symfony/monolog-bundle":       "^3.4",
@@ -135,7 +127,6 @@
     "suggest": {
         "doctrine/doctrine-bundle":     "to use Doctrine user provider",
         "friendsofsymfony/user-bundle": "to connect FOSUB with this bundle",
-        "php-http/httplug-bundle":      "to provide required HTTP client with ease.",
         "symfony/property-access":      "to use FOSUB integration with this bundle",
         "symfony/twig-bundle":          "to use the Twig hwi_oauth_* functions"
     },

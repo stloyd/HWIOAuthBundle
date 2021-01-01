@@ -1,5 +1,9 @@
 Changelog
 =========
+## 2.0.0 (2021-xx-xx)
+* BC Break: replaced `php-http/httplug-bundle` with `symfony/http-client`
+* BC Break: removed `hwi_oauth.http` configuration
+
 ## 1.4.0 (2021-xx-xx)
 * Dropped Symfony 5.0 support as it is EOL,
 

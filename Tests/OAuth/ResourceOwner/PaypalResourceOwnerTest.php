@@ -14,8 +14,6 @@ namespace HWI\Bundle\OAuthBundle\Tests\OAuth\ResourceOwner;
 use HWI\Bundle\OAuthBundle\OAuth\ResourceOwner\PaypalResourceOwner;
 
 /**
- * Class PaypalResourceOwnerTest.
- *
  * @author Berny Cantos <be@rny.cc>
  */
 class PaypalResourceOwnerTest extends GenericOAuth2ResourceOwnerTest

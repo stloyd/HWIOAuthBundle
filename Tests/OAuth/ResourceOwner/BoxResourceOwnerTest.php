@@ -35,17 +35,27 @@ json;
 
     public function testRevokeToken()
     {
-        $this->httpResponseHttpCode = 200;
-        $this->mockHttpClient('{"access_token": "bar"}', 'application/json');
+        $resourceOwner = $this->createResourceOwner(
+            [],
+            [],
+            [
+                $this->createMockResponse('{"access_token": "bar"}', 'application/json'),
+            ]
+        );
 
-        $this->assertTrue($this->resourceOwner->revokeToken('token'));
+        $this->assertTrue($resourceOwner->revokeToken('token'));
     }
 
     public function testRevokeTokenFails()
     {
-        $this->httpResponseHttpCode = 401;
-        $this->mockHttpClient('{"access_token": "bar"}', 'application/json');
+        $resourceOwner = $this->createResourceOwner(
+            [],
+            [],
+            [
+                $this->createMockResponse('{"access_token": "bar"}', 'application/json', 401),
+            ]
+        );
 
-        $this->assertFalse($this->resourceOwner->revokeToken('token'));
+        $this->assertFalse($resourceOwner->revokeToken('token'));
     }
 }

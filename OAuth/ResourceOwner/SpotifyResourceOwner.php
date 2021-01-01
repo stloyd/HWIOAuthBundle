@@ -11,8 +11,12 @@
 
 namespace HWI\Bundle\OAuthBundle\OAuth\ResourceOwner;
 
+use HWI\Bundle\OAuthBundle\OAuth\Exception\HttpTransportException;
 use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthToken;
+use Symfony\Component\HttpClient\Exception\JsonException;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * @author Janne Savolainen <janne.savolainen@sempre.fi>
@@ -38,14 +42,20 @@ class SpotifyResourceOwner extends GenericOAuth2ResourceOwner
             'access_token' => $accessToken['access_token'],
         ]);
 
-        $content = $this->doGetUserInformationRequest($url)->getBody();
+        try {
+            $content = $this->doGetUserInformationRequest($url);
 
-        $response = $this->getUserResponse();
-        $response->setData((string) $content);
-        $response->setResourceOwner($this);
-        $response->setOAuthToken(new OAuthToken($accessToken));
+            $response = $this->getUserResponse();
+            $response->setData($content instanceof ResponseInterface ? $content->toArray(false) : $content);
+            $response->setResourceOwner($this);
+            $response->setOAuthToken(new OAuthToken($accessToken));
 
-        return $response;
+            return $response;
+        } catch (JsonException $e) {
+            throw new HttpTransportException('Error while sending HTTP request', $this->getName(), $e->getCode(), $e);
+        } catch (TransportExceptionInterface $e) {
+            throw new HttpTransportException('Error while sending HTTP request', $this->getName(), $e->getCode(), $e);
+        }
     }
 
     /**

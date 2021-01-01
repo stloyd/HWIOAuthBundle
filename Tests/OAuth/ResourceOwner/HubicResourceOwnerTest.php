@@ -29,12 +29,18 @@ class HubicResourceOwnerTest extends GenericOAuth2ResourceOwnerTest
 
     public function testGetUserInformationFirstAndLastName()
     {
-        $this->mockHttpClient($this->userResponse, 'application/json; charset=utf-8');
+        $resourceOwner = $this->createResourceOwner(
+            [],
+            [],
+            [
+                $this->createMockResponse($this->userResponse, 'application/json; charset=utf-8'),
+            ]
+        );
 
         /**
          * @var AbstractUserResponse
          */
-        $userResponse = $this->resourceOwner->getUserInformation(['access_token' => 'token']);
+        $userResponse = $resourceOwner->getUserInformation(['access_token' => 'token']);
 
         $this->assertEquals('bar', $userResponse->getFirstName());
         $this->assertEquals('foo', $userResponse->getLastName());
@@ -42,9 +48,11 @@ class HubicResourceOwnerTest extends GenericOAuth2ResourceOwnerTest
 
     public function testGetAuthorizationUrl()
     {
+        $resourceOwner = $this->createResourceOwner();
+
         $this->assertEquals(
             $this->options['authorization_url'].'&response_type=code&client_id=clientid&state=eyJzdGF0ZSI6InJhbmRvbSJ9&redirect_uri=http%3A%2F%2Fredirect.to%2F',
-            $this->resourceOwner->getAuthorizationUrl('http://redirect.to/')
+            $resourceOwner->getAuthorizationUrl('http://redirect.to/')
         );
     }
 }

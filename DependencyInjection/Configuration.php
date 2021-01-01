@@ -178,7 +178,6 @@ final class Configuration implements ConfigurationInterface
             ->end()
         ;
 
-        $this->addHttpClientConfiguration($rootNode);
         $this->addConnectConfiguration($rootNode);
         $this->addFosubConfiguration($rootNode);
         $this->addResourceOwnersConfiguration($rootNode);
@@ -424,21 +423,6 @@ final class Configuration implements ConfigurationInterface
                             })
                             ->thenInvalid("If you're setting a 'class', you must provide a 'oauth1' or 'oauth2' type")
                         ->end()
-                    ->end()
-                ->end()
-            ->end()
-        ;
-    }
-
-    private function addHttpClientConfiguration(ArrayNodeDefinition $node)
-    {
-        $node
-            ->children()
-                ->arrayNode('http')
-                    ->addDefaultsIfNotSet()
-                    ->children()
-                        ->scalarNode('client')->defaultValue('httplug.client.default')->end()
-                        ->scalarNode('message_factory')->defaultValue('httplug.message_factory.default')->end()
                     ->end()
                 ->end()
             ->end()

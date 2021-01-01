@@ -11,8 +11,12 @@
 
 namespace HWI\Bundle\OAuthBundle\OAuth\ResourceOwner;
 
+use HWI\Bundle\OAuthBundle\OAuth\Exception\HttpTransportException;
 use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthToken;
+use Symfony\Component\HttpClient\Exception\JsonException;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * StackExchangeResourceOwner.
@@ -37,19 +41,25 @@ class StackExchangeResourceOwner extends GenericOAuth2ResourceOwner
     public function getUserInformation(array $accessToken, array $extraParameters = [])
     {
         $parameters = array_merge(
-           [$this->options['attr_name'] => $accessToken['access_token']],
-           ['site' => $this->options['site'], 'key' => $this->options['key']],
-           $extraParameters
+            [$this->options['attr_name'] => $accessToken['access_token']],
+            ['site' => $this->options['site'], 'key' => $this->options['key']],
+            $extraParameters
         );
 
-        $content = $this->doGetUserInformationRequest($this->normalizeUrl($this->options['infos_url'], $parameters));
+        try {
+            $content = $this->doGetUserInformationRequest($this->normalizeUrl($this->options['infos_url'], $parameters));
 
-        $response = $this->getUserResponse();
-        $response->setData((string) $content->getBody());
-        $response->setResourceOwner($this);
-        $response->setOAuthToken(new OAuthToken($accessToken));
+            $response = $this->getUserResponse();
+            $response->setData($content instanceof ResponseInterface ? $content->toArray(false) : $content);
+            $response->setResourceOwner($this);
+            $response->setOAuthToken(new OAuthToken($accessToken));
 
-        return $response;
+            return $response;
+        } catch (JsonException $e) {
+            throw new HttpTransportException('Error while sending HTTP request', $this->getName(), $e->getCode(), $e);
+        } catch (TransportExceptionInterface $e) {
+            throw new HttpTransportException('Error while sending HTTP request', $this->getName(), $e->getCode(), $e);
+        }
     }
 
     /**

@@ -34,7 +34,14 @@ json;
             'oauth_token_secret' => 'secret',
         ];
 
-        $userResponse = $this->resourceOwner->getUserInformation($accessToken);
+        $resourceOwner = $this->createResourceOwner(
+            [],
+            [],
+            [
+                $this->createMockResponse($this->userResponse),
+            ]
+        );
+        $userResponse = $resourceOwner->getUserInformation($accessToken);
 
         $this->assertEquals('token', $userResponse->getUsername());
         $this->assertEquals('token', $userResponse->getNickname());
@@ -47,7 +54,7 @@ json;
     public function testCustomResponseClass()
     {
         $class = CustomUserResponse::class;
-        $resourceOwner = $this->createResourceOwner('oauth1', ['user_response_class' => $class]);
+        $resourceOwner = $this->createResourceOwner(['user_response_class' => $class]);
 
         $accessToken = [
             'oauth_token' => 'token',

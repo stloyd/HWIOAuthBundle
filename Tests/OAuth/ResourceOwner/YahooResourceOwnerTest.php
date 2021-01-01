@@ -33,10 +33,16 @@ json;
 
     public function testGetUserInformation()
     {
-        $this->mockHttpClient($this->userResponse, 'application/json; charset=utf-8');
+        $resourceOwner = $this->createResourceOwner(
+            [],
+            [],
+            [
+                $this->createMockResponse($this->userResponse, 'application/json; charset=utf-8'),
+            ]
+        );
 
         $accessToken = ['oauth_token' => 'token', 'oauth_token_secret' => 'secret', 'xoauth_yahoo_guid' => 1];
-        $userResponse = $this->resourceOwner->getUserInformation($accessToken);
+        $userResponse = $resourceOwner->getUserInformation($accessToken);
 
         $this->assertEquals('1', $userResponse->getUsername());
         $this->assertEquals('bar', $userResponse->getNickname());
@@ -48,9 +54,13 @@ json;
     public function testCustomResponseClass()
     {
         $class = CustomUserResponse::class;
-        $resourceOwner = $this->createResourceOwner('oauth1', ['user_response_class' => $class]);
-
-        $this->mockHttpClient();
+        $resourceOwner = $this->createResourceOwner(
+            ['user_response_class' => $class],
+            [],
+            [
+                $this->createMockResponse($this->userResponse),
+            ]
+        );
 
         /**
          * @var CustomUserResponse

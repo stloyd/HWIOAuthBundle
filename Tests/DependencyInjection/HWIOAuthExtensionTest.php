@@ -11,8 +11,6 @@
 
 namespace HWI\Bundle\OAuthBundle\Tests\DependencyInjection;
 
-use Http\Client\Common\HttpMethodsClient;
-use Http\HttplugBundle\HttplugBundle;
 use HWI\Bundle\OAuthBundle\DependencyInjection\HWIOAuthExtension;
 use HWI\Bundle\OAuthBundle\Tests\Fixtures\MyCustomProvider;
 use PHPUnit\Framework\TestCase;
@@ -35,26 +33,12 @@ class HWIOAuthExtensionTest extends TestCase
         parent::setUp();
 
         $this->containerBuilder = new ContainerBuilder();
-
-        $this->containerBuilder->setParameter('kernel.bundles', [
-            'HttplugBundle' => new HttplugBundle(),
-        ]);
     }
 
     protected function tearDown(): void
     {
         $this->containerBuilder = null;
         unset($this->containerBuilder);
-    }
-
-    public function testHttpClientExists()
-    {
-        $this->createEmptyConfiguration();
-
-        $this->assertHasDefinition(
-            'hwi_oauth.http_client',
-            HttpMethodsClient::class
-        );
     }
 
     public function testConfigurationThrowsExceptionUnlessFirewallNameSet()
@@ -490,10 +474,10 @@ class HWIOAuthExtensionTest extends TestCase
         $this->assertEquals('hwi_oauth.abstract_resource_owner.oauth2', $definitions['hwi_oauth.resource_owner.my_github']->getParent());
         $this->assertEquals('%hwi_oauth.resource_owner.github.class%', $definitions['hwi_oauth.resource_owner.my_github']->getClass());
 
-        $argument2 = $definitions['hwi_oauth.resource_owner.my_github']->getArgument(2);
+        $argument2 = $definitions['hwi_oauth.resource_owner.my_github']->getArgument(1);
         $this->assertEquals('42', $argument2['client_id']);
         $this->assertEquals('foo', $argument2['client_secret']);
-        $this->assertEquals('my_github', $definitions['hwi_oauth.resource_owner.my_github']->getArgument(3));
+        $this->assertEquals('my_github', $definitions['hwi_oauth.resource_owner.my_github']->getArgument(2));
     }
 
     public function testCreateResourceOwnerServiceWithService()
@@ -538,10 +522,10 @@ class HWIOAuthExtensionTest extends TestCase
         $this->assertEquals('hwi_oauth.abstract_resource_owner.oauth2', $definitions['hwi_oauth.resource_owner.external_ressource_owner']->getParent());
         $this->assertEquals(MyCustomProvider::class, $definitions['hwi_oauth.resource_owner.external_ressource_owner']->getClass());
 
-        $argument2 = $definitions['hwi_oauth.resource_owner.external_ressource_owner']->getArgument(2);
+        $argument2 = $definitions['hwi_oauth.resource_owner.external_ressource_owner']->getArgument(1);
         $this->assertEquals('42', $argument2['client_id']);
         $this->assertEquals('foo', $argument2['client_secret']);
-        $this->assertEquals('external_ressource_owner', $definitions['hwi_oauth.resource_owner.external_ressource_owner']->getArgument(3));
+        $this->assertEquals('external_ressource_owner', $definitions['hwi_oauth.resource_owner.external_ressource_owner']->getArgument(2));
     }
 
     protected function createEmptyConfiguration()
@@ -681,19 +665,6 @@ EOF;
     private function assertParameter($value, $key)
     {
         $this->assertEquals($value, $this->containerBuilder->getParameter($key), sprintf('%s parameter is correct', $key));
-    }
-
-    /**
-     * @param string $id
-     * @param string $className
-     */
-    private function assertHasDefinition($id, $className = null)
-    {
-        $this->assertTrue(($this->containerBuilder->hasDefinition($id) ?: $this->containerBuilder->hasAlias($id)));
-
-        if (null !== $className) {
-            $this->assertSame($this->containerBuilder->findDefinition($id)->getClass(), $className);
-        }
     }
 
     /**

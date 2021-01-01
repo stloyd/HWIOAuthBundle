@@ -22,9 +22,14 @@ class GitLabResourceOwnerTest extends GenericOAuth2ResourceOwnerTest
 
     public function testRevokeToken()
     {
-        $this->httpResponseHttpCode = 200;
-        $this->mockHttpClient(null, 'application/json');
+        $resourceOwner = $this->createResourceOwner(
+            [],
+            [],
+            [
+                $this->createMockResponse($this->userResponse, 'application/json'),
+            ]
+        );
 
-        $this->assertTrue($this->resourceOwner->revokeToken('token'));
+        $this->assertTrue($resourceOwner->revokeToken('token'));
     }
 }

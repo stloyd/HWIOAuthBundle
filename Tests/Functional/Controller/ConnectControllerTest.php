@@ -17,14 +17,13 @@ use Doctrine\ORM\Tools\SchemaTool;
 use HWI\Bundle\OAuthBundle\Security\Core\Exception\AccountNotLinkedException;
 use HWI\Bundle\OAuthBundle\Tests\App\AppKernel;
 use HWI\Bundle\OAuthBundle\Tests\Fixtures\CustomOAuthToken;
-use Prophecy\Argument;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\BrowserKit\Client;
 use Symfony\Component\BrowserKit\Cookie;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * uses FOSUserBundle which itself contains lots of deprecations.
@@ -48,19 +47,15 @@ final class ConnectControllerTest extends WebTestCase
 
     public function testRegistration(): void
     {
-        $mockResponse = $this->prophesize(ResponseInterface::class);
-        $mockResponse->getBody()
-            ->willReturn(json_encode(['access_token' => 'valid-access-token']));
-
-        $httpClient = $this->prophesize(ClientInterface::class);
-        $httpClient->sendRequest(Argument::type(RequestInterface::class))
-            ->shouldBeCalled()
-            ->willReturn($mockResponse->reveal());
+        $httpClient = new MockHttpClient(
+            [
+                new MockResponse(json_encode(['access_token' => 'valid-access-token'])),
+            ]
+        );
 
         $client = static::createClient();
         $client->disableReboot();
-
-        $client->getContainer()->set(ClientInterface::class, $httpClient->reveal());
+        $client->getContainer()->set(HttpClientInterface::class, $httpClient);
 
         $key = 1;
         $exception = new AccountNotLinkedException();
@@ -95,18 +90,15 @@ final class ConnectControllerTest extends WebTestCase
 
     public function testConnectService(): void
     {
+        $httpClient = new MockHttpClient(
+            [
+                new MockResponse(json_encode(['name' => 'foo'])),
+            ]
+        );
+
         $client = static::createClient();
         $client->disableReboot();
-
-        $mockResponse = $this->prophesize(ResponseInterface::class);
-        $httpClient = $this->prophesize(ClientInterface::class);
-        $mockResponse->getBody()
-            ->willReturn(json_encode(['name' => 'foo']));
-
-        $httpClient->sendRequest(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn($mockResponse->reveal());
-        $client->getContainer()->set(ClientInterface::class, $httpClient->reveal());
+        $client->getContainer()->set(HttpClientInterface::class, $httpClient);
 
         $this->createDatabase($client);
 
@@ -133,7 +125,7 @@ final class ConnectControllerTest extends WebTestCase
         $this->assertSame('Successfully connected the account "foo"!', $crawler->filter('h3')->text(), $response->getContent());
     }
 
-    private function logIn(Client $client, SessionInterface $session): void
+    private function logIn(KernelBrowser $client, SessionInterface $session): void
     {
         $firewallContext = 'hwi_context';
         $token = new CustomOAuthToken();
@@ -142,7 +134,7 @@ final class ConnectControllerTest extends WebTestCase
         $client->getCookieJar()->set($cookie);
     }
 
-    private function createDatabase(Client $client): void
+    private function createDatabase(KernelBrowser $client): void
     {
         $entityManager = $client->getContainer()->get('doctrine.orm.entity_manager');
 

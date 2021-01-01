@@ -12,6 +12,7 @@
 namespace HWI\Bundle\OAuthBundle\Tests\OAuth\ResourceOwner;
 
 use HWI\Bundle\OAuthBundle\OAuth\ResourceOwner\SpotifyResourceOwner;
+use HWI\Bundle\OAuthBundle\OAuth\Response\AbstractUserResponse;
 use HWI\Bundle\OAuthBundle\Tests\Fixtures\CustomUserResponse;
 
 /**
@@ -56,12 +57,18 @@ json;
 
     public function testGetUserInformation()
     {
-        $this->mockHttpClient($this->userResponse);
+        $resourceOwner = $this->createResourceOwner(
+            [],
+            [],
+            [
+                $this->createMockResponse($this->userResponse),
+            ]
+        );
 
         /**
-         * @var \HWI\Bundle\OAuthBundle\OAuth\Response\AbstractUserResponse
+         * @var AbstractUserResponse
          */
-        $userResponse = $this->resourceOwner->getUserInformation(['access_token' => 'token']);
+        $userResponse = $resourceOwner->getUserInformation(['access_token' => 'token']);
 
         $this->assertEquals('wizzler', $userResponse->getUsername());
         $this->assertEquals('wizzler', $userResponse->getNickname());
@@ -73,9 +80,13 @@ json;
     public function testCustomResponseClass()
     {
         $class = CustomUserResponse::class;
-        $resourceOwner = $this->createResourceOwner('oauth2', ['user_response_class' => $class]);
-
-        $this->mockHttpClient();
+        $resourceOwner = $this->createResourceOwner(
+            ['user_response_class' => $class],
+            [],
+            [
+                $this->createMockResponse($this->userResponse),
+            ]
+        );
 
         /**
          * @var CustomUserResponse

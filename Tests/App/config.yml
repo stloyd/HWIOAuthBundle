@@ -59,11 +59,9 @@ services:
 
     HWI\Bundle\OAuthBundle\Tests\App\UserProvider: ~
 
-    Psr\Http\Client\ClientInterface:
+    Symfony\Contracts\HttpClient\HttpClientInterface:
         public: true
         synthetic: true
-
-    Http\Message\MessageFactory\GuzzleMessageFactory:
 
 doctrine:
     dbal:
@@ -85,9 +83,6 @@ hwi_oauth:
     fosub:
         properties:
             google: googleId
-    http:
-        client: Psr\Http\Client\ClientInterface
-        message_factory: Http\Message\MessageFactory\GuzzleMessageFactory
     firewall_names: [main]
     resource_owners:
         google:

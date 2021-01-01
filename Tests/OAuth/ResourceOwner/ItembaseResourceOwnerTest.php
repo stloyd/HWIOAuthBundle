@@ -14,8 +14,6 @@ namespace HWI\Bundle\OAuthBundle\Tests\OAuth\ResourceOwner;
 use HWI\Bundle\OAuthBundle\OAuth\ResourceOwner\ItembaseResourceOwner;
 
 /**
- * Class ItembaseResourceOwnerTest.
- *
  * @author Thomas Bretzke <tb@itembase.biz>
  */
 class ItembaseResourceOwnerTest extends GenericOAuth2ResourceOwnerTest

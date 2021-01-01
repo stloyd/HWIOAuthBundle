@@ -14,8 +14,6 @@ namespace HWI\Bundle\OAuthBundle\Tests\OAuth\ResourceOwner;
 use HWI\Bundle\OAuthBundle\OAuth\ResourceOwner\StravaResourceOwner;
 
 /**
- * StravaResourceOwnerTest.
- *
  * @author Artem Genvald <genvaldartem@gmail.com>
  */
 class StravaResourceOwnerTest extends GenericOAuth2ResourceOwnerTest
@@ -46,9 +44,15 @@ json;
 
     public function testGetUserInformation()
     {
-        $this->mockHttpClient($this->userResponse, 'application/json; charset=utf-8');
+        $resourceOwner = $this->createResourceOwner(
+            [],
+            [],
+            [
+                $this->createMockResponse($this->userResponse, 'application/json; charset=utf-8'),
+            ]
+        );
 
-        $userResponse = $this->resourceOwner->getUserInformation(['access_token' => 'token']);
+        $userResponse = $resourceOwner->getUserInformation(['access_token' => 'token']);
 
         $this->assertEquals('1', $userResponse->getUsername());
         $this->assertEquals('Foo Bar', $userResponse->getRealName());

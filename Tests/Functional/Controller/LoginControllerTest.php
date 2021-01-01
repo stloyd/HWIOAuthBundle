@@ -16,11 +16,12 @@ namespace HWI\Bundle\OAuthBundle\Tests\Functional\Controller;
 use HWI\Bundle\OAuthBundle\Security\Core\Exception\AccountNotLinkedException;
 use HWI\Bundle\OAuthBundle\Tests\Fixtures\CustomOAuthToken;
 use HWI\Bundle\OAuthBundle\Tests\Functional\WebTestCase;
-use Psr\Http\Client\ClientInterface;
 use Symfony\Component\BrowserKit\Cookie;
+use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * uses FOSUserBundle which itself contains lots of deprecations.
@@ -39,8 +40,8 @@ final class LoginControllerTest extends WebTestCase
     public function testLoginPage(): void
     {
         $client = static::createClient();
-        $httpClient = $this->prophesize(ClientInterface::class);
-        $client->getContainer()->set(ClientInterface::class, $httpClient->reveal());
+        $httpClient = $this->prophesize(HttpClientInterface::class);
+        $client->getContainer()->set(HttpClientInterface::class, $httpClient->reveal());
 
         $crawler = $client->request('GET', '/login_hwi/');
 
@@ -66,9 +67,11 @@ final class LoginControllerTest extends WebTestCase
 
     public function testLoginPageWithError(): void
     {
+        $httpClient = new MockHttpClient();
+
         $client = static::createClient();
-        $httpClient = $this->prophesize(ClientInterface::class);
-        $client->getContainer()->set(ClientInterface::class, $httpClient->reveal());
+        $client->getContainer()->set(HttpClientInterface::class, $httpClient);
+
         $session = $client->getContainer()->get('session');
 
         $this->logIn($client, $session);

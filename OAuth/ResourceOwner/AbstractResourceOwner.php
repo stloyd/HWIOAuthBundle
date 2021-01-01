@@ -11,8 +11,6 @@
 
 namespace HWI\Bundle\OAuthBundle\OAuth\ResourceOwner;
 
-use Http\Client\Common\HttpMethodsClient;
-use Http\Client\Exception;
 use HWI\Bundle\OAuthBundle\OAuth\Exception\HttpTransportException;
 use HWI\Bundle\OAuthBundle\OAuth\RequestDataStorageInterface;
 use HWI\Bundle\OAuthBundle\OAuth\ResourceOwnerInterface;
@@ -20,11 +18,15 @@ use HWI\Bundle\OAuthBundle\OAuth\Response\PathUserResponse;
 use HWI\Bundle\OAuthBundle\OAuth\Response\UserResponseInterface;
 use HWI\Bundle\OAuthBundle\OAuth\State\State;
 use HWI\Bundle\OAuthBundle\OAuth\StateInterface;
-use Psr\Http\Message\ResponseInterface;
+use Symfony\Component\HttpClient\Exception\JsonException;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpFoundation\Request as HttpRequest;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Http\HttpUtils;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * AbstractResourceOwner.
@@ -47,7 +49,7 @@ abstract class AbstractResourceOwner implements ResourceOwnerInterface
     protected $paths = [];
 
     /**
-     * @var HttpMethodsClient
+     * @var HttpClient
      */
     protected $httpClient;
 
@@ -77,20 +79,20 @@ abstract class AbstractResourceOwner implements ResourceOwnerInterface
     private $stateLoaded = false;
 
     /**
-     * @param HttpMethodsClient           $httpClient Httplug client
      * @param HttpUtils                   $httpUtils  Http utils
      * @param array                       $options    Options for the resource owner
      * @param string                      $name       Name for the resource owner
      * @param RequestDataStorageInterface $storage    Request token storage
+     * @param HttpClientInterface|null    $httpClient
      */
     public function __construct(
-        HttpMethodsClient $httpClient,
         HttpUtils $httpUtils,
         array $options,
         string $name,
-        RequestDataStorageInterface $storage
+        RequestDataStorageInterface $storage,
+        HttpClientInterface $httpClient = null
     ) {
-        $this->httpClient = $httpClient;
+        $this->httpClient = $httpClient ?: HttpClient::create();
         $this->httpUtils = $httpUtils;
         $this->name = $name;
         $this->storage = $storage;
@@ -304,48 +306,41 @@ abstract class AbstractResourceOwner implements ResourceOwnerInterface
             $method = null === $content || '' === $content ? 'GET' : 'POST';
         }
 
-        $headers += ['User-Agent' => 'HWIOAuthBundle (https://github.com/hwi/HWIOAuthBundle)'];
+        $options = ['headers' => $headers];
+        $options['headers'] += ['User-Agent' => 'HWIOAuthBundle (https://github.com/hwi/HWIOAuthBundle)'];
         if (\is_string($content)) {
-            if (!isset($headers['Content-Length'])) {
-                $headers += ['Content-Length' => (string) \strlen($content)];
+            if (!isset($options['headers']['Content-Length'])) {
+                $options['headers'] += ['Content-Length' => (string) \strlen($content)];
             }
         } elseif (\is_array($content)) {
-            $content = http_build_query($content, '', '&');
+            $options['body'] = $content;
         }
 
         try {
-            return $this->httpClient->send(
+            return $this->httpClient->request(
                 $method,
                 $url,
-                $headers,
-                $content
+                $options
             );
-        } catch (Exception $e) {
+        } catch (TransportExceptionInterface $e) {
             throw new HttpTransportException('Error while sending HTTP request', $this->getName(), $e->getCode(), $e);
         }
     }
 
-    /**
-     * Get the 'parsed' content based on the response headers.
-     *
-     * @param ResponseInterface $rawResponse
-     *
-     * @return array
-     */
-    protected function getResponseContent(ResponseInterface $rawResponse)
+    protected function getResponseContent(ResponseInterface $rawResponse): array
     {
-        // First check that content in response exists, due too bug: https://bugs.php.net/bug.php?id=54484
-        $content = (string) $rawResponse->getBody();
-        if (!$content) {
-            return [];
+        $contentTypes = $rawResponse->getHeaders(false)['content-type'] ?? [];
+        if (\in_array('text/plain', $contentTypes, true)) {
+            parse_str($rawResponse->getContent(false), $response);
+
+            return $response;
         }
 
-        $response = json_decode($content, true);
-        if (\JSON_ERROR_NONE !== json_last_error()) {
-            parse_str($content, $response);
+        try {
+            return $rawResponse->toArray(false);
+        } catch (JsonException $e) {
+            return json_decode($rawResponse->getContent(false), true) ?: [];
         }
-
-        return $response;
     }
 
     /**

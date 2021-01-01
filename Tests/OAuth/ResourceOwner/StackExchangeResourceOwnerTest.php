@@ -12,6 +12,7 @@
 namespace HWI\Bundle\OAuthBundle\Tests\OAuth\ResourceOwner;
 
 use HWI\Bundle\OAuthBundle\OAuth\ResourceOwner\StackExchangeResourceOwner;
+use HWI\Bundle\OAuthBundle\OAuth\ResourceOwnerInterface;
 use Symfony\Component\Security\Http\HttpUtils;
 
 class StackExchangeResourceOwnerTest extends GenericOAuth2ResourceOwnerTest
@@ -38,12 +39,13 @@ json;
 
     protected $authorizationUrlBasePart = 'http://user.auth/?test=2&response_type=code&client_id=clientid&scope=no_expiry';
 
-    protected function setUpResourceOwner($name, HttpUtils $httpUtils, array $options)
+    protected function setUpResourceOwner(string $name, HttpUtils $httpUtils, array $options, array $responses): ResourceOwnerInterface
     {
         return parent::setUpResourceOwner(
             $name,
             $httpUtils,
-            array_merge($options, ['key' => 'baz'])
+            array_merge($options, ['key' => 'baz']),
+            $responses
         );
     }
 }
