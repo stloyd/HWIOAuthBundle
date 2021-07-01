@@ -15,25 +15,23 @@ namespace HWI\Bundle\OAuthBundle\Tests\Functional\Controller;
 
 use HWI\Bundle\OAuthBundle\Security\Core\Exception\AccountNotLinkedException;
 use HWI\Bundle\OAuthBundle\Tests\Fixtures\CustomOAuthToken;
-use HWI\Bundle\OAuthBundle\Tests\Functional\WebTestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Http\Client\ClientInterface;
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\Security;
 
-/**
- * uses FOSUserBundle which itself contains lots of deprecations.
- *
- * @group legacy
- */
 final class LoginControllerTest extends WebTestCase
 {
+    use ProphecyTrait;
+
     public function testLoginPage(): void
     {
-        $client = static::createClient();
+        $client = self::createClient();
         $httpClient = $this->prophesize(ClientInterface::class);
-        $client->getContainer()->set(ClientInterface::class, $httpClient->reveal());
+        self::$container->set(ClientInterface::class, $httpClient->reveal());
 
         $crawler = $client->request('GET', '/login_hwi/');
 
@@ -45,7 +43,7 @@ final class LoginControllerTest extends WebTestCase
 
     public function testRedirectingToRegistrationFormWithError(): void
     {
-        $client = static::createClient();
+        $client = self::createClient();
         $session = $client->getContainer()->get('session');
         $session->set(Security::AUTHENTICATION_ERROR, new AccountNotLinkedException());
 
@@ -59,10 +57,12 @@ final class LoginControllerTest extends WebTestCase
 
     public function testLoginPageWithError(): void
     {
-        $client = static::createClient();
+        $client = self::createClient();
+
         $httpClient = $this->prophesize(ClientInterface::class);
-        $client->getContainer()->set(ClientInterface::class, $httpClient->reveal());
-        $session = $client->getContainer()->get('request_stack')->getSession();
+        self::$container->set(ClientInterface::class, $httpClient->reveal());
+
+        $session = self::$container->get('session');
 
         $this->logIn($client, $session);
         $exception = new UsernameNotFoundException();

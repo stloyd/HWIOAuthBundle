@@ -139,9 +139,11 @@ class LoginControllerTest extends TestCase
 
     public function testRegistrationRedirect()
     {
-        $this->request->attributes = new ParameterBag([
-            $this->getAuthenticationErrorKey() => new AccountNotLinkedException(),
-        ]);
+        $this->request->attributes = new ParameterBag(
+            [
+                Security::AUTHENTICATION_ERROR => new AccountNotLinkedException(),
+            ]
+        );
 
         $this->mockAuthorizationCheck(false);
 
@@ -162,9 +164,11 @@ class LoginControllerTest extends TestCase
 
         $authenticationException = new AuthenticationException();
 
-        $this->request->attributes = new ParameterBag([
-            $this->getAuthenticationErrorKey() => $authenticationException,
-        ]);
+        $this->request->attributes = new ParameterBag(
+            [
+                Security::AUTHENTICATION_ERROR => $authenticationException,
+            ]
+        );
 
         $this->twig->expects($this->once())
             ->method('render')
@@ -182,7 +186,7 @@ class LoginControllerTest extends TestCase
 
         $this->session->expects($this->once())
             ->method('has')
-            ->with($this->getAuthenticationErrorKey())
+            ->with(Security::AUTHENTICATION_ERROR)
             ->willReturn(true)
         ;
 
@@ -190,7 +194,7 @@ class LoginControllerTest extends TestCase
 
         $this->session->expects($this->once())
             ->method('get')
-            ->with($this->getAuthenticationErrorKey())
+            ->with(Security::AUTHENTICATION_ERROR)
             ->willReturn($authenticationException)
         ;
 
@@ -204,7 +208,7 @@ class LoginControllerTest extends TestCase
         $controller->connectAction($this->request);
     }
 
-    private function mockAuthorizationCheck($granted = true)
+    private function mockAuthorizationCheck(bool $granted = true): void
     {
         $this->authorizationChecker->expects($this->once())
             ->method('isGranted')
@@ -213,20 +217,15 @@ class LoginControllerTest extends TestCase
         ;
     }
 
-    private function getAuthenticationErrorKey(): string
-    {
-        return Security::AUTHENTICATION_ERROR;
-    }
-
-    private function createController(bool $connect = true, string $grantRule = 'IS_AUTHENTICATED_REMEMBERED'): LoginController
+    private function createController(): LoginController
     {
         $controller = new LoginController(
             $this->authenticationUtils,
             $this->router,
             $this->authorizationChecker,
             $this->requestStack,
-            $connect,
-            $grantRule
+            true,
+            'IS_AUTHENTICATED_REMEMBERED'
         );
         $controller->setContainer($this->container);
 

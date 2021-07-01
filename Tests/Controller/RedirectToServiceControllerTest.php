@@ -14,25 +14,27 @@ namespace HWI\Bundle\OAuthBundle\Tests\Controller;
 use HWI\Bundle\OAuthBundle\Controller\RedirectToServiceController;
 use HWI\Bundle\OAuthBundle\Security\OAuthUtils;
 use HWI\Bundle\OAuthBundle\Util\DomainWhitelist;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class RedirectToServiceControllerTest extends TestCase
 {
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|OAuthUtils
+     * @var MockObject|OAuthUtils
      */
     private $oAuthUtils;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|DomainWhitelist
+     * @var MockObject|DomainWhitelist
      */
     private $domainsWhiteList;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|SessionInterface
+     * @var MockObject|SessionInterface
      */
     private $session;
 
@@ -127,7 +129,7 @@ class RedirectToServiceControllerTest extends TestCase
 
     public function testUnknownResourceOwner()
     {
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class);
+        $this->expectException(NotFoundHttpException::class);
 
         $this->oAuthUtils->expects($this->once())
             ->method('getAuthorizationUrl')

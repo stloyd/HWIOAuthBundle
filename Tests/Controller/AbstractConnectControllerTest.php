@@ -18,6 +18,7 @@ use HWI\Bundle\OAuthBundle\Security\Core\Exception\AccountNotLinkedException;
 use HWI\Bundle\OAuthBundle\Security\Http\ResourceOwnerMap;
 use HWI\Bundle\OAuthBundle\Security\Http\ResourceOwnerMapLocator;
 use HWI\Bundle\OAuthBundle\Security\OAuthUtils;
+use HWI\Bundle\OAuthBundle\Tests\App\Form\RegistrationFormType;
 use HWI\Bundle\OAuthBundle\Tests\Fixtures\CustomOAuthToken;
 use HWI\Bundle\OAuthBundle\Tests\Fixtures\CustomUserResponse;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -38,11 +39,6 @@ use Symfony\Component\Templating\EngineInterface;
 
 abstract class AbstractConnectControllerTest extends TestCase
 {
-    /**
-     * @var ConnectController
-     */
-    protected $controller;
-
     /**
      * @var MockObject|AuthorizationCheckerInterface
      */
@@ -158,7 +154,7 @@ abstract class AbstractConnectControllerTest extends TestCase
         $this->resourceOwnerMap = $this->createMock(ResourceOwnerMap::class);
         $this->resourceOwnerMap->expects($this->any())
             ->method('getResourceOwnerByName')
-            ->withAnyParameters()
+            ->with('facebook')
             ->willReturn($this->resourceOwner);
         $this->container->set('hwi_oauth.resource_ownermap.default', $this->resourceOwnerMap);
 
@@ -182,9 +178,6 @@ abstract class AbstractConnectControllerTest extends TestCase
         $this->session = $this->createMock(SessionInterface::class);
         $this->request = Request::create('/');
         $this->request->setSession($this->session);
-
-        $this->controller = new ConnectController($this->oAuthUtils, $this->resourceOwnerMapLocator, $this->createMock(RequestStack::class));
-        $this->controller->setContainer($this->container);
     }
 
     /**
@@ -206,5 +199,27 @@ abstract class AbstractConnectControllerTest extends TestCase
             ->with('IS_AUTHENTICATED_REMEMBERED')
             ->willReturn($granted)
         ;
+    }
+
+    protected function createConnectController(
+        bool $connectEnabled = true,
+        bool $confirmConnect = true,
+        array $firewallNames = ['default']
+    ): ConnectController {
+        $controller = new ConnectController(
+            $this->oAuthUtils,
+            $this->resourceOwnerMapLocator,
+            $this->createMock(RequestStack::class),
+            $connectEnabled,
+            'IS_AUTHENTICATED_REMEMBERED',
+            true,
+            'fake_route',
+            $confirmConnect,
+            $firewallNames,
+            RegistrationFormType::class
+        );
+        $controller->setContainer($this->container);
+
+        return $controller;
     }
 }

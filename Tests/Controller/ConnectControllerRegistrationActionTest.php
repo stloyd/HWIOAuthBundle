@@ -18,6 +18,7 @@ use HWI\Bundle\OAuthBundle\Form\RegistrationFormHandlerInterface;
 use HWI\Bundle\OAuthBundle\HWIOAuthEvents;
 use HWI\Bundle\OAuthBundle\Tests\Fixtures\User;
 use Symfony\Component\Form\Form;
+use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
@@ -29,9 +30,8 @@ class ConnectControllerRegistrationActionTest extends AbstractConnectControllerT
     {
         $this->expectException(NotFoundHttpException::class);
 
-        $this->container->setParameter('hwi_oauth.connect', false);
-
-        $this->controller->registrationAction($this->request, time());
+        $controller = $this->createConnectController(false);
+        $controller->registrationAction($this->request, time());
     }
 
     public function testAlreadyConnected()
@@ -41,7 +41,8 @@ class ConnectControllerRegistrationActionTest extends AbstractConnectControllerT
 
         $this->mockAuthorizationCheck();
 
-        $this->controller->registrationAction($this->request, time());
+        $controller = $this->createConnectController();
+        $controller->registrationAction($this->request, time());
     }
 
     public function testCannotRegisterBadError()
@@ -64,7 +65,8 @@ class ConnectControllerRegistrationActionTest extends AbstractConnectControllerT
             ->with('_hwi_oauth.registration_error.'.$key)
         ;
 
-        $this->controller->registrationAction($this->request, $key);
+        $controller = $this->createConnectController();
+        $controller->registrationAction($this->request, $key);
     }
 
     public function testFailedProcess()
@@ -103,10 +105,11 @@ class ConnectControllerRegistrationActionTest extends AbstractConnectControllerT
             ->with('@HWIOAuth/Connect/registration.html.twig')
         ;
 
-        $this->controller->registrationAction($this->request, $key);
+        $controller = $this->createConnectController();
+        $controller->registrationAction($this->request, $key);
     }
 
-    public function test()
+    public function testProcessWorks()
     {
         $key = time();
 
@@ -145,18 +148,23 @@ class ConnectControllerRegistrationActionTest extends AbstractConnectControllerT
             ->with('@HWIOAuth/Connect/registration_success.html.twig')
         ;
 
-        $this->controller->registrationAction($this->request, $key);
+        $controller = $this->createConnectController();
+        $controller->registrationAction($this->request, $key);
     }
 
     private function makeRegistrationForm(): void
     {
-        $this->container->setParameter('hwi_oauth.fosub_enabled', true);
-
         $registrationForm = $this->createMock(Form::class);
-        $registrationForm->expects($this->any())
+        $registrationForm->expects($this->atLeastOnce())
             ->method('getData')
             ->willReturn(new User());
 
+        $formFactory = $this->createMock(FormFactoryInterface::class);
+        $formFactory->expects($this->once())
+            ->method('create')
+            ->willReturn($registrationForm);
+
+        $this->container->set('form.factory', $formFactory);
         $this->container->set('hwi_oauth.registration.form', $registrationForm);
     }
 }

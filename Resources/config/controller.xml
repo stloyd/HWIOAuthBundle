@@ -9,6 +9,13 @@
             <argument type="service" id="hwi_oauth.security.oauth_utils" />
             <argument type="service" id="hwi_oauth.resource_ownermap_locator" />
             <argument type="service" id="request_stack" />
+            <argument>%hwi_oauth.connect%</argument>
+            <argument>%hwi_oauth.grant_rule%</argument>
+            <argument>%hwi_oauth.failed_use_referer%</argument>
+            <argument>%hwi_oauth.failed_auth_path%</argument>
+            <argument>%hwi_oauth.connect.confirmation%</argument>
+            <argument>%hwi_oauth.firewall_names%</argument>
+            <argument>%hwi_oauth.connect.registration_form%</argument>
 
             <call method="setContainer">
                 <argument type="service" id="service_container" />
@@ -25,7 +32,9 @@
             <argument>%hwi_oauth.connect%</argument>
             <argument>%hwi_oauth.grant_rule%</argument>
 
-            <call method="setContainer" />
+            <call method="setContainer">
+                <argument type="service" id="service_container" />
+            </call>
 
             <tag name="container.service_subscriber" />
             <tag name="controller.service_arguments" />

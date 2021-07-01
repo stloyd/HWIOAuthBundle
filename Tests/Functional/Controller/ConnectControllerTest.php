@@ -18,21 +18,20 @@ use HWI\Bundle\OAuthBundle\Security\Core\Exception\AccountNotLinkedException;
 use HWI\Bundle\OAuthBundle\Tests\App\AppKernel;
 use HWI\Bundle\OAuthBundle\Tests\Fixtures\CustomOAuthToken;
 use Prophecy\Argument;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\BrowserKit\Client;
 use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
-/**
- * uses FOSUserBundle which itself contains lots of deprecations.
- *
- * @group legacy
- */
 final class ConnectControllerTest extends WebTestCase
 {
+    use ProphecyTrait;
+
     protected function setUp(): void
     {
         static::$class = AppKernel::class;
@@ -78,10 +77,10 @@ final class ConnectControllerTest extends WebTestCase
 
         $form = $crawler->filter('form')->form();
 
-        $form['registration_form[email]']->setValue('test@example.com');
-        $form['registration_form[username]']->setValue('username');
-        $form['registration_form[plainPassword][first]']->setValue('bar');
-        $form['registration_form[plainPassword][second]']->setValue('bar');
+        $form['registration[email]']->setValue('test@example.com');
+        $form['registration[username]']->setValue('foo');
+        $form['registration[plainPassword][first]']->setValue('bar');
+        $form['registration[plainPassword][second]']->setValue('bar');
 
         $crawler = $client->submit($form);
         $response = $client->getResponse();
@@ -103,11 +102,11 @@ final class ConnectControllerTest extends WebTestCase
         $httpClient->sendRequest(Argument::any())
             ->shouldBeCalled()
             ->willReturn($mockResponse->reveal());
-        $client->getContainer()->set(ClientInterface::class, $httpClient->reveal());
+        self::$container->set(ClientInterface::class, $httpClient->reveal());
 
         $this->createDatabase($client);
 
-        $session = $client->getContainer()->get('request_stack')->getSession();
+        $session = self::$container->get('session');
         $key = 1;
         $session->set('_hwi_oauth.connect_confirmation.'.$key, ['access_token' => 'valid-access-token']);
         $this->logIn($client, $session);
@@ -130,7 +129,10 @@ final class ConnectControllerTest extends WebTestCase
         $this->assertSame('Successfully connected the account "foo"!', $crawler->filter('h3')->text(), $response->getContent());
     }
 
-    private function logIn(Client $client, SessionInterface $session): void
+    /**
+     * @param Client|KernelBrowser $client
+     */
+    private function logIn($client, SessionInterface $session): void
     {
         $firewallContext = 'hwi_context';
         $token = new CustomOAuthToken();
@@ -139,7 +141,10 @@ final class ConnectControllerTest extends WebTestCase
         $client->getCookieJar()->set($cookie);
     }
 
-    private function createDatabase(Client $client): void
+    /**
+     * @param Client|KernelBrowser $client
+     */
+    private function createDatabase($client): void
     {
         $entityManager = $client->getContainer()->get('doctrine.orm.entity_manager');
 
