@@ -1,6 +1,7 @@
 Changelog
 =========
 ## 2.0.0 (2021-xx-xx)
+* BC Break: removed support for PHP older than 7.4,
 * BC Break: replaced `php-http/httplug-bundle` with `symfony/http-client`
 * BC Break: removed `hwi_oauth.http` configuration
 
