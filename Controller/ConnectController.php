@@ -28,6 +28,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\Exception\AccountStatusException;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -106,8 +108,8 @@ final class ConnectController extends AbstractController
             ->getUserInformation($error->getRawToken())
         ;
 
-        /* @var $form FormInterface */
-        $form = $this->get('hwi_oauth.registration.form.factory')->createForm();
+        /** @var $form FormInterface */
+        $form = $this->get('hwi_oauth.registration.form');
 
         $formHandler = $this->get('hwi_oauth.registration.form.handler');
         if ($formHandler->process($request, $form, $userInformation)) {
@@ -282,7 +284,15 @@ final class ConnectController extends AbstractController
         $token->setUser($user);
         $token->setAuthenticated(true);
 
-        $this->get('security.token_storage')->setToken($token);
+        /** @var TokenStorageInterface $tokenStorage */
+        $tokenStorage = $this->get('security.token_storage');
+
+        // Handle Session deprecations in Symfony 5.3+
+        if (Kernel::VERSION_ID >= 50300 && method_exists($tokenStorage, 'disableUsageTracking')) {
+            $tokenStorage->disableUsageTracking();
+        }
+
+        $tokenStorage->setToken($token);
 
         if ($fakeLogin) {
             // Since we're "faking" normal login, we need to throw our INTERACTIVE_LOGIN event manually
@@ -316,8 +326,16 @@ final class ConnectController extends AbstractController
      */
     private function getConfirmationResponse(Request $request, array $accessToken, string $service): Response
     {
+        /** @var TokenStorageInterface $tokenStorage */
+        $tokenStorage = $this->get('security.token_storage');
+
+        // Handle Session deprecations in Symfony 5.3+
+        if (Kernel::VERSION_ID >= 50300 && method_exists($tokenStorage, 'disableUsageTracking')) {
+            $tokenStorage->disableUsageTracking();
+        }
+
         /** @var $currentToken OAuthToken */
-        $currentToken = $this->get('security.token_storage')->getToken();
+        $currentToken = $tokenStorage->getToken();
         /** @var $currentUser UserInterface */
         $currentUser = $currentToken->getUser();
 

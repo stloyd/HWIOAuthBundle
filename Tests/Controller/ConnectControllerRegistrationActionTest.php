@@ -11,7 +11,6 @@
 
 namespace HWI\Bundle\OAuthBundle\Tests\Controller;
 
-use FOS\UserBundle\Form\Factory\FactoryInterface;
 use HWI\Bundle\OAuthBundle\Event\FilterUserResponseEvent;
 use HWI\Bundle\OAuthBundle\Event\FormEvent;
 use HWI\Bundle\OAuthBundle\Event\GetResponseUserEvent;
@@ -151,22 +150,13 @@ class ConnectControllerRegistrationActionTest extends AbstractConnectControllerT
 
     private function makeRegistrationForm(): void
     {
+        $this->container->setParameter('hwi_oauth.fosub_enabled', true);
+
         $registrationForm = $this->createMock(Form::class);
         $registrationForm->expects($this->any())
             ->method('getData')
             ->willReturn(new User());
 
-        $this->container->setParameter('hwi_oauth.fosub_enabled', true);
-
-        if (!class_exists(FactoryInterface::class)) {
-            $this->markTestSkipped('FOSUserBundle not installed.');
-        }
-
-        $registrationFormFactory = $this->createMock(FactoryInterface::class);
-        $registrationFormFactory->expects($this->any())
-            ->method('createForm')
-            ->willReturn($registrationForm);
-
-        $this->container->set('hwi_oauth.registration.form.factory', $registrationFormFactory);
+        $this->container->set('hwi_oauth.registration.form', $registrationForm);
     }
 }

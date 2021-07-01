@@ -20,17 +20,14 @@ class AppKernel extends Kernel
 {
     public function registerBundles(): array
     {
-        $bundles = [
+        return [
             new \Symfony\Bundle\FrameworkBundle\FrameworkBundle(),
             new \Symfony\Bundle\SecurityBundle\SecurityBundle(),
             new \Symfony\Bundle\MonologBundle\MonologBundle(),
             new \Symfony\Bundle\TwigBundle\TwigBundle(),
-            new \FOS\UserBundle\FOSUserBundle(),
             new \Doctrine\Bundle\DoctrineBundle\DoctrineBundle(),
             new \HWI\Bundle\OAuthBundle\HWIOAuthBundle(),
         ];
-
-        return $bundles;
     }
 
     public function registerContainerConfiguration(LoaderInterface $loader): void

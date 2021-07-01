@@ -1,5 +1,8 @@
 Changelog
 =========
+## 2.0.0 (2021-xx-xx)
+* BC Break: removed support for `FOSUserBundle`,
+
 ## 1.4.0 (2021-xx-xx)
 * BC Break: dropped Symfony 5.0 support as it is EOL,
 * BC Break: dropped PHP 7.2 support as it is EOL,
