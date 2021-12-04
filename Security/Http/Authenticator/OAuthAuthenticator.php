@@ -16,6 +16,7 @@ use HWI\Bundle\OAuthBundle\OAuth\State\State;
 use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthToken;
 use HWI\Bundle\OAuthBundle\Security\Core\Exception\OAuthAwareExceptionInterface;
 use HWI\Bundle\OAuthBundle\Security\Core\User\OAuthAwareUserProviderInterface;
+use HWI\Bundle\OAuthBundle\Security\Http\Authenticator\Passport\SelfValidatedOAuthPassport;
 use HWI\Bundle\OAuthBundle\Security\Http\ResourceOwnerMapInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -128,7 +129,7 @@ final class OAuthAuthenticator implements AuthenticatorInterface
         $token = new OAuthToken($accessToken);
         $token->setResourceOwnerName($resourceOwner->getName());
 
-        return new Passport\SelfValidatedOAuthPassport($this->refreshToken($token));
+        return new SelfValidatedOAuthPassport($this->refreshToken($token));
     }
 
     /**
@@ -228,11 +229,11 @@ final class OAuthAuthenticator implements AuthenticatorInterface
 
     public function createAuthenticatedToken($passport, string $firewallName): TokenInterface
     {
-        if ($passport instanceof Passport\SelfValidatedOAuthPassport) {
+        if ($passport instanceof SelfValidatedOAuthPassport) {
             return $passport->getToken();
         }
 
-        throw new \LogicException(sprintf('The first argument of "%s" must be instance of "%s", "%s" provided.', __METHOD__, Passport\SelfValidatedOAuthPassport::class, \get_class($passport)));
+        throw new \LogicException(sprintf('The first argument of "%s" must be instance of "%s", "%s" provided.', __METHOD__, SelfValidatedOAuthPassport::class, \get_class($passport)));
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
