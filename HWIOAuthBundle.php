@@ -40,7 +40,14 @@ class HWIOAuthBundle extends Bundle
         // Symfony < 5.1 BC layer: support new Authenticator-based security system in Symfony 5.1+
         // and old security system in all Symfony versions.
         if (interface_exists(AuthenticatorFactoryInterface::class)) {
-            $extension->addSecurityListenerFactory(new OAuthAuthenticatorFactory());
+            if (method_exists($extension, 'addAuthenticatorFactory')) {
+                $extension->addAuthenticatorFactory(new OAuthAuthenticatorFactory());
+            } else {
+                /*
+                 * @deprecated since Symfony 5.4, use "addAuthenticatorFactory()" instead
+                 */
+                $extension->addSecurityListenerFactory(new OAuthAuthenticatorFactory());
+            }
         } else {
             $extension->addSecurityListenerFactory(new OAuthFactory());
         }

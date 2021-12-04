@@ -13,4 +13,7 @@ namespace HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token;
 
 class OAuthToken extends AbstractOAuthToken
 {
+    public function copyPersistentDataTo(self $token): void
+    {
+    }
 }

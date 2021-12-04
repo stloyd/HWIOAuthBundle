@@ -127,6 +127,7 @@
 
     "scripts": {
         "csfixer": "vendor/bin/php-cs-fixer fix --verbose --dry-run",
+        "csfixer-diff": "vendor/bin/php-cs-fixer fix --verbose --dry-run --diff",
         "csfixer-fix": "vendor/bin/php-cs-fixer fix --verbose",
         "phpunit": "vendor/bin/phpunit",
         "phpstan": "vendor/bin/phpstan"
