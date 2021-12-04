@@ -30,7 +30,6 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerI
 use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
-use Symfony\Component\Security\Http\Authenticator\Passport\PassportInterface;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 use Symfony\Component\Security\Http\HttpUtils;
 
@@ -152,9 +151,9 @@ final class OAuthAuthenticator implements AuthenticatorInterface
     }
 
     /**
-     * @param Passport $passport
+     * @param Passport|SelfValidatingPassport $passport
      */
-    public function createAuthenticatedToken(PassportInterface $passport, string $firewallName): TokenInterface
+    public function createAuthenticatedToken($passport, string $firewallName): TokenInterface
     {
         $token = $this->createToken($passport, $firewallName);
 
