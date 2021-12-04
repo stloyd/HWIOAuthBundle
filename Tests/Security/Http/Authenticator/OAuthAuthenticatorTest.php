@@ -98,7 +98,7 @@ final class OAuthAuthenticatorTest extends TestCase
             ->willReturn(true);
 
         $serviceLocator = $this->createMock(ServiceLocator::class);
-        $serviceLocator->expects($this->once())
+        $serviceLocator->expects($this->exactly(2))
             ->method('get')
             ->with($resourceOwnerName)
             ->willReturn($resourceOwnerMock);

@@ -15,11 +15,11 @@ use HWI\Bundle\OAuthBundle\DependencyInjection\CompilerPass\ResourceOwnerMapComp
 use HWI\Bundle\OAuthBundle\DependencyInjection\HWIOAuthExtension;
 use HWI\Bundle\OAuthBundle\DependencyInjection\Security\Factory\OAuthAuthenticatorFactory;
 use HWI\Bundle\OAuthBundle\DependencyInjection\Security\Factory\OAuthFactory;
+use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\AuthenticatorFactoryInterface;
 use Symfony\Bundle\SecurityBundle\DependencyInjection\SecurityExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
-use Symfony\Component\Security\Core\Authentication\Provider\AuthenticationProviderInterface;
 
 /**
  * @author Geoffrey Bachelet <geoffrey.bachelet@gmail.com>
@@ -37,11 +37,19 @@ class HWIOAuthBundle extends Bundle
         /** @var SecurityExtension $extension */
         $extension = $container->getExtension('security');
 
-        // Symfony < 5.4 BC layer
-        if (interface_exists(AuthenticationProviderInterface::class)) {
-            $extension->addSecurityListenerFactory(new OAuthFactory());
+        // Symfony < 5.1 BC layer: support new Authenticator-based security system in Symfony 5.1+
+        // and old security system in all Symfony versions.
+        if (interface_exists(AuthenticatorFactoryInterface::class)) {
+            if (method_exists($extension, 'addAuthenticatorFactory')) {
+                $extension->addAuthenticatorFactory(new OAuthAuthenticatorFactory());
+            } else {
+                /*
+                 * @deprecated since Symfony 5.4, use "addAuthenticatorFactory()" instead
+                 */
+                $extension->addSecurityListenerFactory(new OAuthAuthenticatorFactory());
+            }
         } else {
-            $extension->addAuthenticatorFactory(new OAuthAuthenticatorFactory());
+            $extension->addSecurityListenerFactory(new OAuthFactory());
         }
 
         $container->addCompilerPass(new ResourceOwnerMapCompilerPass());
