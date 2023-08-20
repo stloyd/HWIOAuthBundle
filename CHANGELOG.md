@@ -1,7 +1,7 @@
 Changelog
 =========
-## 2.0.0-BETA3 (2022-xx-xx)
-* BC Break: Dropped support for Symfony: 6.0.*,
+## 2.0.0-BETA4 (2022-08-20)
+* BC Break: Dropped support for Symfony: 4.4 & 6.0.*,
 * BC Break: Class `Templating\Helper\OAuthHelper` was merged into `Twig\Extension\OAuthRuntime`,
 * BC Break: When resource owner class doesn't define `TYPE` constant or is `null`, then key will be calculated by converting its class name without `ResourceOwner` suffix to `snake_case`, if neither is felt, then `\LogicException` will be thrown,
 * Deprecated: method `UserResponseInterface::getUsername()` was deprecated in favour of `UserResponseInterface::getUserIdentifier()` to match changes in Symfony Security component,
@@ -54,7 +54,7 @@ Changelog
   - `hwi_oauth_connect`: `GET`,
   - `hwi_oauth_service_redirect`: `GET`,
 * Added support for PHP 8.1,
-* Added support for Symfony 5.6,
+* Added support for Symfony 5,
 
 ## 1.4.5 (2021-12-08)
 * Bugfix: Fixed: BC break by restoring wrongly moved `AbstractOAuthToken::getCredentials()` method,
