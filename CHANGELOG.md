@@ -1,6 +1,6 @@
 Changelog
 =========
-## 2.0.0-BETA4 (2022-08-20)
+## 2.0.0-BETA3 (2022-08-20)
 * BC Break: Dropped support for Symfony: 4.4 & 6.0.*,
 * BC Break: Class `Templating\Helper\OAuthHelper` was merged into `Twig\Extension\OAuthRuntime`,
 * BC Break: When resource owner class doesn't define `TYPE` constant or is `null`, then key will be calculated by converting its class name without `ResourceOwner` suffix to `snake_case`, if neither is felt, then `\LogicException` will be thrown,
